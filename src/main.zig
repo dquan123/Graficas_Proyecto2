@@ -46,100 +46,101 @@ pub fn main() !void {
     var last_frame_time = Clock.now(io);
     var delta: i64 = 1;
 
-    const espejo = Material{
-        .Color = V3FromColor(htmlColor("#fff")),
+    const mat_piedra = Material{
+        .Color = V3FromColor(htmlColor("#999")),
+        .Texture = try rl.loadImage("assets/textures/stone.png"),
         .Propiedades = .{
-            .Albedo = 0,
-            .Especular = 1,
-            .Reflectividad = 0.9,
+            .Albedo = 0.8,
+            .Especular = 0.2,
+            .Reflectividad = 0,
             .Transparencia = 0,
         },
-        .Especular = 100,
+        .Especular = 8,
         .Refractive_index = 0,
     };
 
-    const vidrio = Material{
-        .Color = V3FromColor(htmlColor("#aaa")),
+    const mat_madera = Material{
+        .Color = V3FromColor(htmlColor("#8b5a2b")),
+        .Texture = try rl.loadImage("assets/textures/wood.png"),
         .Propiedades = .{
-            .Albedo = 0,
-            .Especular = 0.5,
-            .Reflectividad = 0.1,
-            .Transparencia = 0.8,
-        },
-        .Especular = 125,
-        .Refractive_index = 1.5,
-    };
-
-    const diamante = Material{
-        .Color = V3FromColor(htmlColor("#aaa")),
-        .Propiedades = .{
-            .Albedo = 0,
-            .Especular = 0.5,
-            .Reflectividad = 0.1,
-            .Transparencia = 0.8,
-        },
-        .Especular = 125,
-        .Refractive_index = 2.417,
-    };
-
-    const marmol = Material{
-        .Color = V3FromColor(htmlColor("#66664c")),
-        .Texture = try rl.loadImage("assets/textures/test.png"),
-        .Propiedades = .{
-            .Albedo = 0.4,
+            .Albedo = 0.6,
             .Especular = 0.3,
             .Reflectividad = 0,
             .Transparencia = 0,
         },
-        .Especular = 10,
+        .Especular = 15,
+        .Refractive_index = 0,
+    };
+
+    const mat_metal = Material{
+        .Color = V3FromColor(htmlColor("#ccc")),
+        .Texture = try rl.loadImage("assets/textures/metal.png"),
+        .Propiedades = .{
+            .Albedo = 0.2,
+            .Especular = 0.8,
+            .Reflectividad = 0.6,
+            .Transparencia = 0,
+        },
+        .Especular = 90,
+        .Refractive_index = 0,
+    };
+
+    const mat_vidrio = Material{
+        .Color = V3FromColor(htmlColor("#dff")),
+        .Texture = try rl.loadImage("assets/textures/glass.png"),
+        .Propiedades = .{
+            .Albedo = 0.1,
+            .Especular = 0.9,
+            .Reflectividad = 0.1,
+            .Transparencia = 0.85,
+        },
+        .Especular = 120,
+        .Refractive_index = 1.5,
+    };
+
+    const mat_pasto = Material{
+        .Color = V3FromColor(htmlColor("#4a7")),
+        .Texture = try rl.loadImage("assets/textures/grass.png"),
+        .Propiedades = .{
+            .Albedo = 0.9,
+            .Especular = 0.05,
+            .Reflectividad = 0,
+            .Transparencia = 0,
+        },
+        .Especular = 4,
         .Refractive_index = 0,
     };
 
     const spheres = [_]Forma{
-        .{ .Sphere = .{
-            .center = .{ .x = 10, .y = 0, .z = -40 },
-            .radius = 5,
-            .material = espejo,
-        } },
-        .{ .Sphere = .{
-            .center = .{ .x = 12.5, .y = 0, .z = -60 },
-            .radius = 5,
-            .material = .{
-                .Color = V3FromColor(htmlColor("#4c1919")),
-                .Propiedades = .{
-                    .Albedo = 0.9,
-                    .Especular = 0.1,
-                    .Reflectividad = 0,
-                    .Transparencia = 0,
-                },
-                .Especular = 10,
-                .Refractive_index = 0,
-            },
-        } },
-        .{ .Sphere = .{
-            .center = .{ .x = 0, .y = 0, .z = 0 },
-            .radius = 5,
-            .material = marmol,
-        } },
-        .{ .Sphere = .{
-            .center = .{ .x = 22, .y = 0, .z = -45 },
-            .radius = 5,
-            .material = espejo,
-        } },
-        .{ .Sphere = .{
-            .center = .{ .x = -25, .y = 0, .z = -40 },
-            .radius = 5,
-            .material = vidrio,
-        } },
-        .{ .Sphere = .{
-            .center = .{ .x = -37, .y = 0, .z = -40 },
-            .radius = 5,
-            .material = diamante,
-        } },
+        // Base de pasto
         .{ .Cube = .{
-            .center = .{ .x = 0, .y = -10, .z = -30 },
-            .half_size = .{ .x = 8, .y = 8, .z = 8 },
-            .material = marmol,
+            .center = .{ .x = 0, .y = -12, .z = -40 },
+            .half_size = .{ .x = 30, .y = 2, .z = 30 },
+            .material = mat_pasto,
+        } },
+        // Cuerpo de la casita (piedra)
+        .{ .Cube = .{
+            .center = .{ .x = 0, .y = -4, .z = -40 },
+            .half_size = .{ .x = 8, .y = 6, .z = 8 },
+            .material = mat_piedra,
+        } },
+        // Techo (madera)
+        .{ .Cube = .{
+            .center = .{ .x = 0, .y = 3, .z = -40 },
+            .half_size = .{ .x = 9, .y = 1, .z = 9 },
+            .material = mat_madera,
+        } },
+        // Columna de metal a un lado
+        .{ .Cube = .{
+            .center = .{ .x = 16, .y = -6, .z = -35 },
+            .half_size = .{ .x = 2, .y = 4, .z = 2 },
+            .material = mat_metal,
+        } },
+        // Bloque de vidrio al frente
+        .{ .Cube = .{
+            .center = .{ .x = -14, .y = -8, .z = -25 },
+            .half_size = .{ .x = 4, .y = 2, .z = 4 },
+            .material = mat_vidrio,
         } },
     };
 
