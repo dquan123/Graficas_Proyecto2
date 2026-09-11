@@ -1,4 +1,5 @@
 const rl = @import("raylib");
+const std = @import("std");
 
 pub fn V3FromColor(src: rl.Color) rl.Vector3 {
     const x: f32 = @floatFromInt(src.r);
@@ -25,6 +26,7 @@ pub const Material = struct {
     Color: rl.Vector3,
     Especular: f32,
     Refractive_index: f32,
+    Texture: ?rl.Image = null,
     Propiedades: struct {
         Albedo: f32,
         Especular: f32,
@@ -38,4 +40,14 @@ pub const Intersect = struct {
     Distancia: f32,
     Normal: rl.Vector3,
     Punto: rl.Vector3,
+    UV: rl.Vector2 = .{ .x = 0, .y = 0 },
 };
+
+pub fn sampleMaterialColor(mat: Material, uv: rl.Vector2) rl.Vector3 {
+    if (mat.Texture) |tex| {
+        const px: i32 = @intFromFloat(std.math.clamp(uv.x, 0.0, 0.999) * @as(f32, @floatFromInt(tex.width)));
+        const py: i32 = @intFromFloat(std.math.clamp(1.0 - uv.y, 0.0, 0.999) * @as(f32, @floatFromInt(tex.height)));
+        return V3FromColor(tex.getColor(px, py));
+    }
+    return mat.Color;
+}

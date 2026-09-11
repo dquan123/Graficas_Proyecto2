@@ -55,11 +55,31 @@ pub const Cube = struct {
             else => unreachable,
         }
 
+        const size = self.half_size.scale(2);
+        var u: f32 = 0;
+        var v: f32 = 0;
+        switch (hit_axis) {
+            0 => {
+                u = (point.z - bmin.z) / size.z;
+                v = (point.y - bmin.y) / size.y;
+            },
+            1 => {
+                u = (point.x - bmin.x) / size.x;
+                v = (point.z - bmin.z) / size.z;
+            },
+            2 => {
+                u = (point.x - bmin.x) / size.x;
+                v = (point.y - bmin.y) / size.y;
+            },
+            else => unreachable,
+        }
+
         return .{
             .Material = self.material,
             .Distancia = t_min,
             .Normal = normal,
             .Punto = point,
+            .UV = .{ .x = u, .y = v },
         };
     }
 };

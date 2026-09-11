@@ -1,4 +1,5 @@
 const rl = @import("raylib");
+const std = @import("std");
 const Intersect = @import("raytracer.zig").Intersect;
 const Material = @import("raytracer.zig").Material;
 
@@ -32,14 +33,21 @@ pub const Sphere = struct {
                 // asumiendo que la esfera es perfectamente esferica,
                 // normal es la direccion desde el centro de la esfera al punto que calculamos
                 const norm = point.subtract(self.center).normalize();
+
+                const local = norm; // ya normalizado, centrado en origen
+                const u = (std.math.atan2(local.z, local.x) + std.math.pi) / (2 * std.math.pi);
+                const v = std.math.acos(std.math.clamp(local.y, -1, 1)) / std.math.pi;
+
                 return .{
                     .Material = self.material,
                     .Distancia = solucion,
                     .Normal = norm,
                     .Punto = point,
+                    .UV = .{ .x = u, .y = v },
                 };
             }
         }
+
         return null;
     }
 };

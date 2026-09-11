@@ -84,6 +84,7 @@ pub fn main() !void {
 
     const marmol = Material{
         .Color = V3FromColor(htmlColor("#66664c")),
+        .Texture = try rl.loadImage("assets/textures/test.png"),
         .Propiedades = .{
             .Albedo = 0.4,
             .Especular = 0.3,
@@ -324,6 +325,10 @@ fn cast_ray(origin: rl.Vector3, direction: rl.Vector3, objects: []const Forma, l
             }
         }
 
+        const ambient_intensity: f32 = 0.15;
+        const base_color = @import("raytracer.zig").sampleMaterialColor(mat, hit.UV);
+        color = color.add(base_color.scale(ambient_intensity));
+
         for (lights) |light| {
             if (obscured(hit.Punto, light, objects))
                 continue;
@@ -331,7 +336,8 @@ fn cast_ray(origin: rl.Vector3, direction: rl.Vector3, objects: []const Forma, l
             const light_dir = (light.Position.subtract(hit.Punto)).normalize();
 
             const diffuse_intensity = @max(0, hit.Normal.dotProduct(light_dir)) * light.Intensity;
-            const diffuse = mat.Color.scale(diffuse_intensity);
+            //const base_color = @import("raytracer.zig").sampleMaterialColor(mat, hit.UV);
+            const diffuse = base_color.scale(diffuse_intensity);
 
             const reflection_dir = hit.Normal.scale(2 * hit.Normal.dotProduct(light_dir)).subtract(light_dir).normalize();
             const specular_intensity = std.math.pow(f32, @max(0, reflection_dir.dotProduct(view_direction)), mat.Especular) * light.Intensity;
