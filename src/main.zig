@@ -111,6 +111,34 @@ pub fn main() !void {
         .Refractive_index = 0,
     };
 
+    const spheres = [_]Forma{
+        .{ .Cube = .{
+            .center = .{ .x = 0, .y = -12, .z = -40 },
+            .half_size = .{ .x = 30, .y = 2, .z = 30 },
+            .material = mat_pasto,
+        } },
+        .{ .Cube = .{
+            .center = .{ .x = 0, .y = -4, .z = -40 },
+            .half_size = .{ .x = 8, .y = 6, .z = 8 },
+            .material = mat_piedra,
+        } },
+        .{ .Cube = .{
+            .center = .{ .x = 0, .y = 3, .z = -40 },
+            .half_size = .{ .x = 9, .y = 1, .z = 9 },
+            .material = mat_madera,
+        } },
+        .{ .Cube = .{
+            .center = .{ .x = 16, .y = -6, .z = -35 },
+            .half_size = .{ .x = 2, .y = 4, .z = 2 },
+            .material = mat_metal,
+        } },
+        .{ .Cube = .{
+            .center = .{ .x = -14, .y = -8, .z = -25 },
+            .half_size = .{ .x = 4, .y = 2, .z = 4 },
+            .material = mat_vidrio,
+        } },
+    };
+
     const lights = [_]Light{
         .{
             .Color = V3FromColor(htmlColor("#f00")),
@@ -124,7 +152,10 @@ pub fn main() !void {
         },
     };
 
-    const cameraDistance = 100;
+    var cameraDistance: f32 = 100;
+    const cameraDistanceMin: f32 = 20;
+    const cameraDistanceMax: f32 = 220;
+    const zoomSpeed: f32 = 60; // unidades por segundo
     var camera: Camera = .init(.{
         .x = 0,
         .y = 0,
@@ -138,7 +169,6 @@ pub fn main() !void {
     const camera_y_angle_max = std.math.pi / 4.0;
     const camera_y_angle_min = -camera_y_angle_max;
 
-    var diorama_angle: f32 = 0;
     while (!rl.windowShouldClose()) {
         defer {
             const now = Clock.now(io);
@@ -148,37 +178,6 @@ pub fn main() !void {
         framebuffer.clear();
 
         const dt: f32 = @as(f32, @floatFromInt(delta)) / 1_000_000;
-        diorama_angle += 0.3 * dt;
-        const cos_a = @cos(diorama_angle);
-        const sin_a = @sin(diorama_angle);
-
-        const spheres = [_]Forma{
-            .{ .Cube = .{
-                .center = rotateXZ(.{ .x = 0, .y = -12, .z = -40 }, cos_a, sin_a),
-                .half_size = .{ .x = 30, .y = 2, .z = 30 },
-                .material = mat_pasto,
-            } },
-            .{ .Cube = .{
-                .center = rotateXZ(.{ .x = 0, .y = -4, .z = -40 }, cos_a, sin_a),
-                .half_size = .{ .x = 8, .y = 6, .z = 8 },
-                .material = mat_piedra,
-            } },
-            .{ .Cube = .{
-                .center = rotateXZ(.{ .x = 0, .y = 3, .z = -40 }, cos_a, sin_a),
-                .half_size = .{ .x = 9, .y = 1, .z = 9 },
-                .material = mat_madera,
-            } },
-            .{ .Cube = .{
-                .center = rotateXZ(.{ .x = 16, .y = -6, .z = -35 }, cos_a, sin_a),
-                .half_size = .{ .x = 2, .y = 4, .z = 2 },
-                .material = mat_metal,
-            } },
-            .{ .Cube = .{
-                .center = rotateXZ(.{ .x = -14, .y = -8, .z = -25 }, cos_a, sin_a),
-                .half_size = .{ .x = 4, .y = 2, .z = 4 },
-                .material = mat_vidrio,
-            } },
-        };
 
         if (rl.isKeyDown(.a)) {
             camera_x_angle += cameraTurnSpeed * dt;
@@ -194,6 +193,13 @@ pub fn main() !void {
             camera_y_angle -= cameraTurnSpeed * dt;
             camera_y_angle = @max(camera_y_angle_min, @min(camera_y_angle_max, camera_y_angle));
         }
+        if (rl.isKeyDown(.up)) {
+            cameraDistance -= zoomSpeed * dt;
+        }
+        if (rl.isKeyDown(.down)) {
+            cameraDistance += zoomSpeed * dt;
+        }
+        cameraDistance = std.math.clamp(cameraDistance, cameraDistanceMin, cameraDistanceMax);
 
         camera.Postition.x = @cos(camera_x_angle) * cameraDistance;
         camera.Postition.y = @sin(camera_y_angle) * cameraDistance;
