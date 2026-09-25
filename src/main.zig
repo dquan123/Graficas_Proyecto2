@@ -111,39 +111,6 @@ pub fn main() !void {
         .Refractive_index = 0,
     };
 
-    const spheres = [_]Forma{
-        // Base de pasto
-        .{ .Cube = .{
-            .center = .{ .x = 0, .y = -12, .z = -40 },
-            .half_size = .{ .x = 30, .y = 2, .z = 30 },
-            .material = mat_pasto,
-        } },
-        // Cuerpo de la casita (piedra)
-        .{ .Cube = .{
-            .center = .{ .x = 0, .y = -4, .z = -40 },
-            .half_size = .{ .x = 8, .y = 6, .z = 8 },
-            .material = mat_piedra,
-        } },
-        // Techo (madera)
-        .{ .Cube = .{
-            .center = .{ .x = 0, .y = 3, .z = -40 },
-            .half_size = .{ .x = 9, .y = 1, .z = 9 },
-            .material = mat_madera,
-        } },
-        // Columna de metal a un lado
-        .{ .Cube = .{
-            .center = .{ .x = 16, .y = -6, .z = -35 },
-            .half_size = .{ .x = 2, .y = 4, .z = 2 },
-            .material = mat_metal,
-        } },
-        // Bloque de vidrio al frente
-        .{ .Cube = .{
-            .center = .{ .x = -14, .y = -8, .z = -25 },
-            .half_size = .{ .x = 4, .y = 2, .z = 4 },
-            .material = mat_vidrio,
-        } },
-    };
-
     const lights = [_]Light{
         .{
             .Color = V3FromColor(htmlColor("#f00")),
@@ -171,6 +138,7 @@ pub fn main() !void {
     const camera_y_angle_max = std.math.pi / 4.0;
     const camera_y_angle_min = -camera_y_angle_max;
 
+    var diorama_angle: f32 = 0;
     while (!rl.windowShouldClose()) {
         defer {
             const now = Clock.now(io);
@@ -180,6 +148,37 @@ pub fn main() !void {
         framebuffer.clear();
 
         const dt: f32 = @as(f32, @floatFromInt(delta)) / 1_000_000;
+        diorama_angle += 0.3 * dt;
+        const cos_a = @cos(diorama_angle);
+        const sin_a = @sin(diorama_angle);
+
+        const spheres = [_]Forma{
+            .{ .Cube = .{
+                .center = rotateXZ(.{ .x = 0, .y = -12, .z = -40 }, cos_a, sin_a),
+                .half_size = .{ .x = 30, .y = 2, .z = 30 },
+                .material = mat_pasto,
+            } },
+            .{ .Cube = .{
+                .center = rotateXZ(.{ .x = 0, .y = -4, .z = -40 }, cos_a, sin_a),
+                .half_size = .{ .x = 8, .y = 6, .z = 8 },
+                .material = mat_piedra,
+            } },
+            .{ .Cube = .{
+                .center = rotateXZ(.{ .x = 0, .y = 3, .z = -40 }, cos_a, sin_a),
+                .half_size = .{ .x = 9, .y = 1, .z = 9 },
+                .material = mat_madera,
+            } },
+            .{ .Cube = .{
+                .center = rotateXZ(.{ .x = 16, .y = -6, .z = -35 }, cos_a, sin_a),
+                .half_size = .{ .x = 2, .y = 4, .z = 2 },
+                .material = mat_metal,
+            } },
+            .{ .Cube = .{
+                .center = rotateXZ(.{ .x = -14, .y = -8, .z = -25 }, cos_a, sin_a),
+                .half_size = .{ .x = 4, .y = 2, .z = 4 },
+                .material = mat_vidrio,
+            } },
+        };
 
         if (rl.isKeyDown(.a)) {
             camera_x_angle += cameraTurnSpeed * dt;
@@ -368,4 +367,12 @@ fn obscured(origin: rl.Vector3, light: Light, objects: []const Forma) bool {
     }
 
     return false;
+}
+
+fn rotateXZ(p: rl.Vector3, cos_a: f32, sin_a: f32) rl.Vector3 {
+    return .{
+        .x = p.x * cos_a - p.z * sin_a,
+        .y = p.y,
+        .z = p.x * sin_a + p.z * cos_a,
+    };
 }
