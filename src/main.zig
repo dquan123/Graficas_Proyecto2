@@ -300,13 +300,11 @@ fn cast_ray(origin: rl.Vector3, direction: rl.Vector3, objects: []const Forma, l
 
         if (mat.Propiedades.Reflectividad > 0) {
             if (max_recursion > 0) {
-                const reflect_direction = rl.Vector3{ .x = 0, .y = 1, .z = 0 };
-                const new_og = hit.Punto; // Esto puede hacer que topemos con la misma figura
-                // Eso es malo
+                const reflect_direction = direction.subtract(hit.Normal.scale(2 * direction.dotProduct(hit.Normal))).normalize();
+                const new_og = hit.Punto.add(hit.Normal.scale(0.001));
                 const reflect_color = cast_ray(new_og, reflect_direction, objects, lights, max_recursion - 1);
                 color = color.add(reflect_color.scale(mat.Propiedades.Reflectividad));
             } else {
-                // Refleja el fondo
                 color = color.add(.zero());
             }
         }
@@ -319,9 +317,8 @@ fn cast_ray(origin: rl.Vector3, direction: rl.Vector3, objects: []const Forma, l
                     const refract_color = cast_ray(new_og, refract_direction, objects, lights, max_recursion - 1);
                     color = color.add(refract_color.scale(mat.Propiedades.Transparencia));
                 } else {
-                    const reflect_direction = rl.Vector3{ .x = 0, .y = 1, .z = 0 };
-                    const new_og = hit.Punto; // Esto puede hacer que topemos con la misma figura
-                    // Eso es malo
+                    const reflect_direction = direction.subtract(hit.Normal.scale(2 * direction.dotProduct(hit.Normal))).normalize();
+                    const new_og = hit.Punto.add(hit.Normal.scale(0.001));
                     const reflect_color = cast_ray(new_og, reflect_direction, objects, lights, max_recursion - 1);
                     color = color.add(reflect_color.scale(mat.Propiedades.Reflectividad));
                 }
