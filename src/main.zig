@@ -111,6 +111,19 @@ pub fn main() !void {
         .Refractive_index = 0,
     };
 
+    const mat_cristal = Material{
+        .Color = V3FromColor(htmlColor("#00ffff")),
+        .Emission = V3FromColor(htmlColor("#00ffff")).scale(3.0),
+        .Propiedades = .{
+            .Albedo = 0.3,
+            .Especular = 0.5,
+            .Reflectividad = 0,
+            .Transparencia = 0,
+        },
+        .Especular = 30,
+        .Refractive_index = 0,
+    };
+
     const spheres = [_]Forma{
         .{ .Cube = .{
             .center = .{ .x = 0, .y = -12, .z = -40 },
@@ -136,6 +149,11 @@ pub fn main() !void {
             .center = .{ .x = 0, .y = -5, .z = -15 },
             .half_size = .{ .x = 10, .y = 10, .z = 3 },
             .material = mat_vidrio,
+        } },
+        .{ .Cube = .{
+            .center = .{ .x = 0, .y = 7, .z = -40 },
+            .half_size = .{ .x = 1.2, .y = 1.2, .z = 1.2 },
+            .material = mat_cristal,
         } },
     };
 
@@ -294,6 +312,7 @@ fn cast_ray(origin: rl.Vector3, direction: rl.Vector3, objects: []const Forma, l
     if (closest_hit) |hit| {
         const mat = hit.Material;
         var color: rl.Vector3 = .zero();
+        color = color.add(mat.Emission);
 
         // Desde el punto a la cámara
         const view_direction = direction.scale(-1);

@@ -27,6 +27,7 @@ pub const Material = struct {
     Especular: f32,
     Refractive_index: f32,
     Texture: ?rl.Image = null,
+    Emission: rl.Vector3 = .zero(),
     Propiedades: struct {
         Albedo: f32,
         Especular: f32,
