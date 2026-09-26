@@ -133,8 +133,8 @@ pub fn main() !void {
             .material = mat_metal,
         } },
         .{ .Cube = .{
-            .center = .{ .x = -14, .y = -8, .z = -25 },
-            .half_size = .{ .x = 4, .y = 2, .z = 4 },
+            .center = .{ .x = 0, .y = -5, .z = -15 },
+            .half_size = .{ .x = 10, .y = 10, .z = 3 },
             .material = mat_vidrio,
         } },
     };
@@ -312,8 +312,7 @@ fn cast_ray(origin: rl.Vector3, direction: rl.Vector3, objects: []const Forma, l
         if (mat.Propiedades.Transparencia > 0) {
             if (max_recursion > 0) {
                 if (refract(direction, hit.Normal, mat.Refractive_index)) |refract_direction| {
-                    const new_og = hit.Punto; // Esto puede hacer que topemos con la misma figura
-                    // Eso es malo
+                    const new_og = hit.Punto.add(refract_direction.scale(0.001));
                     const refract_color = cast_ray(new_og, refract_direction, objects, lights, max_recursion - 1);
                     color = color.add(refract_color.scale(mat.Propiedades.Transparencia));
                 } else {
