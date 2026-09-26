@@ -86,7 +86,7 @@ pub fn main() !void {
     };
 
     const mat_vidrio = Material{
-        .Color = V3FromColor(htmlColor("#dff")),
+        .Color = V3FromColor(htmlColor("#33dd88")),
         .Texture = try rl.loadImage("assets/textures/glass.png"),
         .Propiedades = .{
             .Albedo = 0.1,
@@ -303,7 +303,8 @@ fn cast_ray(origin: rl.Vector3, direction: rl.Vector3, objects: []const Forma, l
                 const reflect_direction = direction.subtract(hit.Normal.scale(2 * direction.dotProduct(hit.Normal))).normalize();
                 const new_og = hit.Punto.add(hit.Normal.scale(0.001));
                 const reflect_color = cast_ray(new_og, reflect_direction, objects, lights, max_recursion - 1);
-                color = color.add(reflect_color.scale(mat.Propiedades.Reflectividad));
+                const tinted_reflect = tintColor(reflect_color, mat.Color);
+                color = color.add(tinted_reflect.scale(mat.Propiedades.Reflectividad));
             } else {
                 color = color.add(.zero());
             }
@@ -314,12 +315,14 @@ fn cast_ray(origin: rl.Vector3, direction: rl.Vector3, objects: []const Forma, l
                 if (refract(direction, hit.Normal, mat.Refractive_index)) |refract_direction| {
                     const new_og = hit.Punto.add(refract_direction.scale(0.001));
                     const refract_color = cast_ray(new_og, refract_direction, objects, lights, max_recursion - 1);
-                    color = color.add(refract_color.scale(mat.Propiedades.Transparencia));
+                    const tinted_refract = tintColor(refract_color, mat.Color);
+                    color = color.add(tinted_refract.scale(mat.Propiedades.Transparencia));
                 } else {
                     const reflect_direction = direction.subtract(hit.Normal.scale(2 * direction.dotProduct(hit.Normal))).normalize();
                     const new_og = hit.Punto.add(hit.Normal.scale(0.001));
                     const reflect_color = cast_ray(new_og, reflect_direction, objects, lights, max_recursion - 1);
-                    color = color.add(reflect_color.scale(mat.Propiedades.Reflectividad));
+                    const tinted_reflect = tintColor(reflect_color, mat.Color);
+                    color = color.add(tinted_reflect.scale(mat.Propiedades.Reflectividad));
                 }
             } else {
                 // Refleja el fondo
@@ -377,4 +380,8 @@ fn rotateXZ(p: rl.Vector3, cos_a: f32, sin_a: f32) rl.Vector3 {
         .y = p.y,
         .z = p.x * sin_a + p.z * cos_a,
     };
+}
+
+fn tintColor(a: rl.Vector3, b: rl.Vector3) rl.Vector3 {
+    return .{ .x = a.x * b.x, .y = a.y * b.y, .z = a.z * b.z };
 }
