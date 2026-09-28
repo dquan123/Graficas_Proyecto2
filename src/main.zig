@@ -74,15 +74,15 @@ pub fn main() !void {
     };
 
     const mat_metal = Material{
-        .Color = V3FromColor(htmlColor("#ccc")),
+        .Color = V3FromColor(htmlColor("#8a8f99")),
         .Texture = try rl.loadImage("assets/textures/metal.png"),
         .Propiedades = .{
-            .Albedo = 0.2,
-            .Especular = 0.8,
-            .Reflectividad = 0.6,
+            .Albedo = 0.5,
+            .Especular = 0.9,
+            .Reflectividad = 0.35,
             .Transparencia = 0,
         },
-        .Especular = 90,
+        .Especular = 60,
         .Refractive_index = 0,
     };
 
@@ -147,7 +147,7 @@ pub fn main() !void {
             .material = mat_metal,
         } },
         .{ .Cube = .{
-            .center = .{ .x = 0, .y = -5, .z = -15 },
+            .center = .{ .x = 0, .y = 0, .z = -15 },
             .half_size = .{ .x = 10, .y = 10, .z = 3 },
             .material = mat_vidrio,
         } },
