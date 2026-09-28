@@ -22,7 +22,6 @@ pub const Light = struct {
 };
 
 pub const Material = struct {
-    //xyz como rgb, pero reducimos conversiones primero haciendo mate en f32 y luego convertimos de regreso a u8
     Color: rl.Vector3,
     Especular: f32,
     Refractive_index: f32,
@@ -51,4 +50,15 @@ pub fn sampleMaterialColor(mat: Material, uv: rl.Vector2) rl.Vector3 {
         return V3FromColor(tex.getColor(px, py));
     }
     return mat.Color;
+}
+
+pub fn sampleSkybox(sky: rl.Image, direction: rl.Vector3) rl.Vector3 {
+    const d = direction.normalize();
+    const u = (std.math.atan2(d.z, d.x) + std.math.pi) / (2 * std.math.pi);
+    const v = std.math.acos(std.math.clamp(d.y, -1, 1)) / std.math.pi;
+
+    const px: i32 = @intFromFloat(std.math.clamp(u, 0.0, 0.999) * @as(f32, @floatFromInt(sky.width)));
+    const py: i32 = @intFromFloat(std.math.clamp(v, 0.0, 0.999) * @as(f32, @floatFromInt(sky.height)));
+
+    return V3FromColor(sky.getColor(px, py));
 }

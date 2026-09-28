@@ -21,6 +21,7 @@ const height = 600;
 const block_sz = 100;
 
 pub fn main() !void {
+    const skybox = try rl.loadImage("assets/textures/skybox.png");
     var alloc = switch (builtin.mode) {
         .Debug, .ReleaseSafe => std.heap.DebugAllocator(.{}).init,
         .ReleaseFast, .ReleaseSmall => std.heap.smp_allocator,
@@ -113,7 +114,7 @@ pub fn main() !void {
 
     const mat_cristal = Material{
         .Color = V3FromColor(htmlColor("#00ffff")),
-        .Emission = V3FromColor(htmlColor("#00ffff")).scale(3.0),
+        .Emission = V3FromColor(htmlColor("#00ffff")).scale(5.0),
         .Propiedades = .{
             .Albedo = 0.3,
             .Especular = 0.5,
@@ -225,13 +226,13 @@ pub fn main() !void {
 
         camera.lookAt(.zero());
 
-        try render(&framebuffer, &spheres, &lights, camera);
+        try render(&framebuffer, &spheres, &lights, camera, skybox);
 
         try framebuffer.swap_buffers();
     }
 }
 
-fn render(target: *Framebuffer, objects: []const Forma, lights: []const Light, camera: Camera) !void {
+fn render(target: *Framebuffer, objects: []const Forma, lights: []const Light, camera: Camera, skybox: rl.Image) !void {
     const width_f32: f32 = @floatFromInt(target.width);
     const height_f32: f32 = @floatFromInt(target.height);
 
@@ -262,7 +263,7 @@ fn render(target: *Framebuffer, objects: []const Forma, lights: []const Light, c
                 .z = direction_from_camera.x * camera.Right.z + direction_from_camera.y * camera.Up.z + direction_from_camera.z * camera.Forward.z,
             };
 
-            const col = cast_ray(camera.Postition, direction, objects, lights, 5);
+            const col = cast_ray(camera.Postition, direction, objects, lights, 5, skybox);
             target.set_current_color(V3ToColor(col));
             try target.set_pixel(@intCast(screen_x), @intCast(screen_y));
         }
@@ -293,7 +294,7 @@ fn refract(incident: rl.Vector3, normal: rl.Vector3, refractive_index: f32) ?rl.
     }
 }
 
-fn cast_ray(origin: rl.Vector3, direction: rl.Vector3, objects: []const Forma, lights: []const Light, max_recursion: usize) rl.Vector3 {
+fn cast_ray(origin: rl.Vector3, direction: rl.Vector3, objects: []const Forma, lights: []const Light, max_recursion: usize, skybox: rl.Image) rl.Vector3 {
     var closest_hit: ?Intersect = null;
     var z_buffer: f32 = std.math.floatMax(f32);
     for (objects) |object| {
@@ -321,7 +322,7 @@ fn cast_ray(origin: rl.Vector3, direction: rl.Vector3, objects: []const Forma, l
             if (max_recursion > 0) {
                 const reflect_direction = direction.subtract(hit.Normal.scale(2 * direction.dotProduct(hit.Normal))).normalize();
                 const new_og = hit.Punto.add(hit.Normal.scale(0.001));
-                const reflect_color = cast_ray(new_og, reflect_direction, objects, lights, max_recursion - 1);
+                const reflect_color = cast_ray(new_og, reflect_direction, objects, lights, max_recursion - 1, skybox);
                 const tinted_reflect = tintColor(reflect_color, mat.Color);
                 color = color.add(tinted_reflect.scale(mat.Propiedades.Reflectividad));
             } else {
@@ -333,13 +334,13 @@ fn cast_ray(origin: rl.Vector3, direction: rl.Vector3, objects: []const Forma, l
             if (max_recursion > 0) {
                 if (refract(direction, hit.Normal, mat.Refractive_index)) |refract_direction| {
                     const new_og = hit.Punto.add(refract_direction.scale(0.001));
-                    const refract_color = cast_ray(new_og, refract_direction, objects, lights, max_recursion - 1);
+                    const refract_color = cast_ray(new_og, refract_direction, objects, lights, max_recursion - 1, skybox);
                     const tinted_refract = tintColor(refract_color, mat.Color);
                     color = color.add(tinted_refract.scale(mat.Propiedades.Transparencia));
                 } else {
                     const reflect_direction = direction.subtract(hit.Normal.scale(2 * direction.dotProduct(hit.Normal))).normalize();
                     const new_og = hit.Punto.add(hit.Normal.scale(0.001));
-                    const reflect_color = cast_ray(new_og, reflect_direction, objects, lights, max_recursion - 1);
+                    const reflect_color = cast_ray(new_og, reflect_direction, objects, lights, max_recursion - 1, skybox);
                     const tinted_reflect = tintColor(reflect_color, mat.Color);
                     color = color.add(tinted_reflect.scale(mat.Propiedades.Reflectividad));
                 }
@@ -372,7 +373,7 @@ fn cast_ray(origin: rl.Vector3, direction: rl.Vector3, objects: []const Forma, l
         }
 
         return color;
-    } else return .zero();
+    } else return @import("raytracer.zig").sampleSkybox(skybox, direction);
 }
 
 fn obscured(origin: rl.Vector3, light: Light, objects: []const Forma) bool {
