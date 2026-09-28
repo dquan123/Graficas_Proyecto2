@@ -50,6 +50,5 @@ Usa siempre `-Doptimize=ReleaseFast`. Sin ese flag el render es muchísimo más 
 - `src/camera.zig`: cámara con base ortonormal
 - `assets/textures/`: texturas y skybox
 
-## Video
-
-[Pega aquí el link o el GIF del video]
+## GIF
+![Demo del diorama](assets/GIF.gif)
