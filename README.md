@@ -52,3 +52,6 @@ Usa siempre `-Doptimize=ReleaseFast`. Sin ese flag el render es muchísimo más 
 
 ## GIF
 ![Demo del diorama](assets/GIF.gif)
+
+## Video de presentación
+https://youtu.be/HwPmEIQbnc4
